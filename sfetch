@@ -1,0 +1,90 @@
+#!/bin/sh
+#
+# sfetch - simple posix sh fetch for arch linux
+
+main () {
+    get_info
+    vars
+
+    if [ -z "$1" ]
+    then
+        arch
+    else
+        obsd
+    fi
+}
+
+vars () {
+    ac='\e[1;34m'
+    oc='\e[1;33m'
+    tc='\e[m'
+    sc='\e[0;37m'
+    s='~'
+    e='\e[m'
+}
+
+arch () {
+printf '%b\n' "\
+${ac}         .        
+${ac}        / \        OS ${sc}${s} ${tc}${os}
+${ac}       /   \       Kernel ${sc}${s} ${tc}${kernel}
+${ac}      /^.   \      Packages ${sc}${s} ${tc}${packages}
+${ac}     /  .-.  \     Shell ${sc}${s} ${tc}${shell}
+${ac}    /  (   ) _\    Environment ${sc}${s} ${tc}${de}
+${ac}   / _.~   ~._^\   Memory ${sc}${s} ${tc}${memory}
+${ac}  /.^         ^.\  $e
+"
+}
+
+obsd () {
+printf '%b\n' "\
+${oc}       _____      
+${oc}     \-     -/    OS ${sc}${s} ${tc}${os}
+${oc}  \_/         \   Kernel ${sc}${s} ${tc}${kernel}
+${oc}  |        O O |  Packages ${sc}${s} ${tc}${packages}
+${oc}  |_  <   )  3 )  Shell ${sc}${s} ${tc}${shell}
+${oc}  / \         /   Environment ${sc}${s} ${tc}${de}
+${oc}     /-_____-\    Memory ${sc}${s} ${tc}${memory} $e
+"
+}
+
+eq () {
+	case $1 in
+		$2) ;;
+		*) return 1;;
+	esac
+}
+
+get_mem () {
+    while IFS=':k '  read -r key val _; do
+        case $key in
+            'MemTotal') mem_total=$val ;;
+            'MemFree') mem_free=$val ;;
+            'Buffers') mem_buffers=$val ;;
+            'Cached') mem_cached=$val ;;
+        esac
+    done < /proc/meminfo
+
+    used_memory="$(( $mem_total - $mem_free - $mem_buffers - $mem_cached ))"
+    memory="$(( $used_memory / 1024 )) MB"
+    unset -v mem_total mem_free mem_buffers mem_cached
+}
+
+get_info () {
+    os='Arch Linux'
+    shell="${SHELL##*/}"
+    de="$XDG_CURRENT_DESKTOP"
+    get_mem
+
+    read -r _ _ version _ < /proc/version
+	kernel=${version%%-*}
+
+    set --
+    for i in '/var/lib/pacman/local/[0-9a-z]*'
+    do
+    	set -- $i
+    	[ $# -gt 1 ] && packages=$# && break
+    done
+}
+
+main "$1"
