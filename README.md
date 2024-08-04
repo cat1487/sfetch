@@ -7,3 +7,6 @@
 # FAQ
 Q: why does sfetch show incorrect memory usage <br>
 A: in posix sh it is very difficult to get the real memory usage. All I got is to get close to the values of `free -h`
+
+Q: Why it posix only 'sometimes'?
+A: In Fedora Linux you can't count your packages without sqlite package.
